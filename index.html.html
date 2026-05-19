@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Maybank Redesign Prototype</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-dark: #0A0A0A;
+            --bg-gradient: #111111;
+            --primary-yellow: #FFD700;
+            --text-white: #FFFFFF;
+            --text-grey: #CCCCCC;
+            --card-bg: #1E1E1E;
+            --input-bg: #2A2A2A;
+            --success: #C5E01A;
+            --error: #FF8C42;
+            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #333;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: var(--text-white);
+        }
+
+        /* Phone Container */
+        #phone-wrapper {
+            width: 375px;
+            height: 700px;
+            background: linear-gradient(180deg, var(--bg-dark) 0%, var(--bg-gradient) 100%);
+            position: relative;
+            overflow: hidden;
+            border-radius: 40px;
+            border: 8px solid #333;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 70px);
+            padding: 24px;
+            display: none;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .screen.active { display: flex; }
+
+        /* Typography & Components */
+        h1 { font-size: 24px; margin-bottom: 8px; color: var(--text-white); }
+        h2 { font-size: 18px; color: var(--primary-yellow); margin-bottom: 20px; }
+        .subtext { color: var(--text-grey); font-size: 14px; }
+
+        /* Buttons & Clickables */
+        .btn-tap {
+            cursor: pointer;
+            transition: var(--transition);
+            user-select: none;
+        }
+        .btn-tap:active {
+            transform: scale(0.96);
+            filter: brightness(1.2);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+        }
+
+        .primary-btn {
+            background: var(--primary-yellow);
+            color: black;
+            border: none;
+            padding: 16px;
+            border-radius: 16px;
+            font-weight: bold;
+            font-size: 16px;
+            width: 100%;
+            margin-top: auto;
+            text-align: center;
+        }
+
+        .primary-btn:disabled {
+            background: #444;
+            color: #777;
+        }
+
+        /* Home Specifics */
+        .balance-card {
+            background: var(--card-bg);
+            border: 1px solid var(--primary-yellow);
+            padding: 20px;
+            border-radius: 20px;
+            margin: 20px 0;
+            position: relative;
+        }
+        .balance-amount { font-size: 32px; font-weight: bold; color: var(--primary-yellow); margin-top: 10px; }
+        
+        .chip-container { display: flex; gap: 10px; margin-bottom: 30px; }
+        .chip {
+            background: var(--input-bg);
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: 14px;
+            flex: 1;
+            text-align: center;
+            border: 1px solid transparent;
+        }
+        .chip.active { border-color: var(--primary-yellow); color: var(--primary-yellow); }
+
+        /* Step 2 Cards */
+        .pay-option-card {
+            background: var(--card-bg);
+            border: 1px solid #333;
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 12px;
+        }
+        .payee-list { margin-top: 15px; display: none; flex-direction: column; gap: 8px; }
+        .payee-item {
+            padding: 12px;
+            background: #2a2a2a;
+            border-radius: 10px;
+            border-left: 4px solid var(--primary-yellow);
+        }
+
+        /* Inputs */
+        input {
+            background: var(--input-bg);
+            border: 1px solid #444;
+            color: white;
+            padding: 16px;
+            border-radius: 12px;
+            width: 100%;
+            font-size: 16px;
+            outline: none;
+        }
+        input:focus { border-color: var(--primary-yellow); }
+
+        /* Bottom Nav */
+        #bottom-nav {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 75px;
+            background: black;
+            border-top: 1px solid var(--primary-yellow);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding-bottom: 10px;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: white;
+            font-size: 11px;
+            width: 56px;
+            height: 56px;
+            justify-content: center;
+            position: relative;
+        }
+        .nav-item.active { color: var(--primary-yellow); }
+        .nav-item.active i { color: var(--primary-yellow); }
+        .nav-indicator {
+            position: absolute;
+            top: 0;
+            width: 24px;
+            height: 2px;
+            background: var(--primary-yellow);
+            display: none;
+        }
+        .nav-item.active .nav-indicator { display: block; }
+        .nav-item i { font-size: 20px; margin-bottom: 4px; }
+
+        /* Modals */
+        .modal {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 100;
+            display: none;
+            padding: 40px 24px;
+        }
+        .modal-content { background: var(--card-bg); padding: 24px; border-radius: 24px; border: 1px solid var(--primary-yellow); }
+
+        /* Toast */
+        #toast {
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary-yellow);
+            color: black;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+            display: none;
+            z-index: 200;
+        }
+
+        /* Success Animation */
+        .swipe-container {
+            background: var(--input-bg);
+            border-radius: 50px;
+            padding: 8px;
+            margin-top: 40px;
+            position: relative;
+            text-align: center;
+        }
+        .swipe-pill {
+            background: var(--primary-yellow);
+            color: black;
+            padding: 15px;
+            border-radius: 40px;
+            font-weight: bold;
+        }
+        .success-tick {
+            font-size: 80px;
+            color: var(--success);
+            text-align: center;
+            margin: 40px 0;
+            animation: pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes pop { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+
+        /* Confetti */
+        .confetti { position: absolute; width: 10px; height: 10px; background: var(--primary-yellow); }
+    </style>
+</head>
+<body>
+
+<div id="phone-wrapper">
+    <div id="toast">Demo Feature Activated</div>
+
+    <!-- STEP 1: HOME -->
+    <div id="step-1" class="screen active">
+        <p class="subtext">👋 Good morning, Abrar</p>
+        <h1>Total Balance</h1>
+        <div class="balance-card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span id="balance-text" class="balance-amount">RM 2,450.00</span>
+                <i id="toggle-balance" class="fa-solid fa-eye btn-tap" style="font-size: 20px; color: var(--text-grey);"></i>
+            </div>
+            <p class="subtext" style="margin-top: 15px;">Abrar's Savings Account</p>
+        </div>
+
+        <div class="chip-container">
+            <div class="chip btn-tap" onclick="showToast('Send money feature - demo')"><i class="fa-solid fa-paper-plane"></i><br>Send</div>
+            <div class="chip btn-tap" onclick="showToast('Request money feature - demo')"><i class="fa-solid fa-hand-holding-dollar"></i><br>Request</div>
+            <div class="chip btn-tap" onclick="showToast('Scan QR feature - demo')"><i class="fa-solid fa-qrcode"></i><br>Scan</div>
+        </div>
+
+        <div class="primary-btn btn-tap" onclick="goToStep(2)" style="margin-top: 20px;">
+            PAY <i class="fa-solid fa-chevron-right" style="margin-left: 8px;"></i>
+        </div>
+    </div>
+
+    <!-- STEP 2: PAYEE SELECTION -->
+    <div id="step-2" class="screen">
+        <div class="btn-tap" onclick="goToStep(1)" style="margin-bottom: 20px;"><i class="fa-solid fa-arrow-left"></i> Back</div>
+        <h2>Who are you paying?</h2>
+        
+        <div class="pay-option-card btn-tap" onclick="selectPayee('QR Payment')">
+            <i class="fa-solid fa-qrcode" style="color: var(--primary-yellow);"></i> &nbsp; Scan QR
+        </div>
+
+        <div class="pay-option-card btn-tap" onclick="toggleSavedPayees()">
+            <div style="display: flex; justify-content: space-between;">
+                <span><i class="fa-solid fa-star" style="color: var(--primary-yellow);"></i> &nbsp; Saved Payees</span>
+                <i class="fa-solid fa-chevron-down"></i>
+            </div>
+            <div id="saved-list" class="payee-list">
+                <div class="payee-item btn-tap" onclick="selectPayee('Mother', event)">Mother</div>
+                <div class="payee-item btn-tap" onclick="selectPayee('Grab', event)">Grab</div>
+                <div class="payee-item btn-tap" onclick="selectPayee('TNB', event)">TNB</div>
+            </div>
+        </div>
+
+        <div class="pay-option-card btn-tap" onclick="promptNewPayee()">
+            <i class="fa-solid fa-plus" style="color: var(--primary-yellow);"></i> &nbsp; New Payee
+        </div>
+    </div>
+
+    <!-- STEP 3: AMOUNT -->
+    <div id="step-3" class="screen">
+        <div class="btn-tap" onclick="goToStep(2)" style="margin-bottom: 20px;"><i class="fa-solid fa-arrow-left"></i> Back</div>
+        <h2>Enter amount</h2>
+        <p class="subtext">Paying: <span id="display-payee" style="color: white; font-weight: bold;"></span></p>
+        
+        <div style="text-align: center; margin: 40px 0;">
+            <span style="font-size: 24px; vertical-align: top;">RM</span>
+            <span id="amount-val" style="font-size: 56px; font-weight: bold; color: var(--primary-yellow);">0.00</span>
+        </div>
+
+        <div class="chip-container" style="flex-wrap: wrap;">
+            <div class="chip btn-tap" onclick="setAmount(20)">RM20</div>
+            <div class="chip btn-tap" onclick="setAmount(50)">RM50</div>
+            <div class="chip btn-tap" onclick="setAmount(100)">RM100</div>
+            <div class="chip btn-tap" onclick="setAmount(200)">RM200</div>
+        </div>
+
+        <input type="text" id="note-input" placeholder="📝 Add a note (optional)" style="margin-top: 20px;">
+
+        <div id="continue-btn" class="primary-btn btn-tap" onclick="goToStep(4)" style="margin-top: 30px; opacity: 0.5;" disabled>
+            CONTINUE
+        </div>
+    </div>
+
+    <!-- STEP 4: CONFIRMATION -->
+    <div id="step-4" class="screen">
+        <div class="btn-tap" onclick="goToStep(3)" style="margin-bottom: 20px;"><i class="fa-solid fa-arrow-left"></i> Back</div>
+        <h2><i class="fa-solid fa-lock"></i> Confirm Payment</h2>
+        
+        <div class="balance-card" style="border-style: dashed;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                <span class="subtext">To:</span>
+                <span id="conf-payee" style="font-weight: bold;"></span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                <span class="subtext">Amount:</span>
+                <span id="conf-amount" style="font-weight: bold; color: var(--primary-yellow);"></span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <span class="subtext">Note:</span>
+                <span id="conf-note"></span>
+            </div>
+        </div>
+
+        <div class="btn-tap" onclick="goToStep(3)" style="text-align: center; color: var(--primary-yellow); margin: 10px 0;">Edit Details</div>
+
+        <div class="primary-btn btn-tap" onclick="goToStep(5)" style="margin-top: auto;">
+            CONFIRM & PAY
+        </div>
+    </div>
+
+    <!-- STEP 5: SUCCESS -->
+    <div id="step-5" class="screen">
+        <div id="swipe-section" style="width: 100%;">
+            <h2 style="text-align: center; margin-top: 60px;">Final Step</h2>
+            <p class="subtext" style="text-align: center;">Tap the bar to release payment</p>
+            <div class="swipe-container btn-tap" onclick="triggerSuccess()">
+                <div class="swipe-pill">👉 TAP TO PAY RM <span id="swipe-amt"></span></div>
+            </div>
+        </div>
+
+        <div id="success-section" style="display: none; flex-direction: column; align-items: center; width: 100%;">
+            <div class="success-tick"><i class="fa-solid fa-circle-check"></i></div>
+            <h1 style="color: var(--success);">Success!</h1>
+            <p class="subtext">Payment has been sent to <span id="success-payee" style="color: white;"></span></p>
+            
+            <div class="primary-btn btn-tap" onclick="resetApp()" style="margin-top: 100px;">DONE</div>
+        </div>
+    </div>
+
+    <!-- MODALS -->
+    <div id="activity-modal" class="modal" onclick="closeModals()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h2>Recent Activity</h2>
+            <div class="payee-item" style="margin-bottom: 8px;">Grab <span style="float: right;">-RM12.00</span></div>
+            <div class="payee-item" style="margin-bottom: 8px;">TNB <span style="float: right;">-RM85.00</span></div>
+            <div class="payee-item" style="margin-bottom: 8px;">Mother <span style="float: right;">-RM200.00</span></div>
+            <div class="primary-btn btn-tap" style="margin-top: 20px;" onclick="closeModals()">Close</div>
+        </div>
+    </div>
+
+    <div id="profile-modal" class="modal" onclick="closeModals()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div style="text-align: center;">
+                <i class="fa-solid fa-circle-user" style="font-size: 60px; color: var(--primary-yellow); margin-bottom: 15px;"></i>
+                <h2>Abrar</h2>
+                <p class="subtext">Maybank Member since 2021</p>
+            </div>
+            <div class="primary-btn btn-tap" style="margin-top: 40px; background: #444; color: white;" onclick="resetApp(); closeModals();">LOGOUT</div>
+            <div class="btn-tap" style="text-align: center; margin-top: 20px; color: var(--text-grey);" onclick="closeModals()">Back</div>
+        </div>
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <div id="bottom-nav">
+        <div class="nav-item btn-tap" onclick="resetApp()">
+            <div class="nav-indicator"></div>
+            <i class="fa-solid fa-house"></i>
+            <span>Home</span>
+        </div>
+        <div id="nav-pay" class="nav-item active btn-tap" onclick="goToStep(2)">
+            <div class="nav-indicator"></div>
+            <i class="fa-solid fa-wallet"></i>
+            <span>Pay</span>
+        </div>
+        <div class="nav-item btn-tap" onclick="openActivity()">
+            <div class="nav-indicator"></div>
+            <i class="fa-solid fa-clock-rotate-left"></i>
+            <span>Activity</span>
+        </div>
+        <div class="nav-item btn-tap" onclick="openProfile()">
+            <div class="nav-indicator"></div>
+            <i class="fa-solid fa-user"></i>
+            <span>Profile</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    // State Management
+    let state = {
+        balanceHidden: false,
+        payee: '',
+        amount: 0,
+        note: '',
+        currentStep: 1
+    };
+
+    // Navigation Logic
+    function goToStep(step) {
+        // Validation
+        if (step === 3 && !state.payee) {
+            showToast("Please select a payee first");
+            return;
+        }
+
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(`step-${step}`).classList.add('active');
+        state.currentStep = step;
+
+        // Update Nav UI
+        const payNav = document.getElementById('nav-pay');
+        if (step > 1) {
+            payNav.classList.add('active');
+        } else {
+            payNav.classList.remove('active');
+        }
+
+        // Populate Data for specific steps
+        if (step === 3) {
+            document.getElementById('display-payee').innerText = state.payee;
+            checkAmount();
+        }
+        if (step === 4) {
+            document.getElementById('conf-payee').innerText = state.payee;
+            document.getElementById('conf-amount').innerText = `RM ${state.amount.toFixed(2)}`;
+            document.getElementById('conf-note').innerText = document.getElementById('note-input').value || '-';
+        }
+        if (step === 5) {
+            document.getElementById('swipe-amt').innerText = state.amount.toFixed(2);
+            document.getElementById('swipe-section').style.display = 'block';
+            document.getElementById('success-section').style.display = 'none';
+        }
+    }
+
+    // Feature Logics
+    document.getElementById('toggle-balance').onclick = function() {
+        state.balanceHidden = !state.balanceHidden;
+        const txt = document.getElementById('balance-text');
+        txt.innerText = state.balanceHidden ? '••••••••' : 'RM 2,450.00';
+        this.classList.toggle('fa-eye');
+        this.classList.toggle('fa-eye-slash');
+    };
+
+    function toggleSavedPayees() {
+        const list = document.getElementById('saved-list');
+        list.style.display = list.style.display === 'flex' ? 'none' : 'flex';
+    }
+
+    function selectPayee(name, event) {
+        if (event) event.stopPropagation();
+        state.payee = name;
+        goToStep(3);
+    }
+
+    function promptNewPayee() {
+        const name = prompt("Enter new payee name:");
+        if (name && name.trim() !== "") {
+            state.payee = name;
+            goToStep(3);
+        }
+    }
+
+    function setAmount(val) {
+        state.amount = val;
+        document.getElementById('amount-val').innerText = val.toFixed(2);
+        checkAmount();
+    }
+
+    function checkAmount() {
+        const btn = document.getElementById('continue-btn');
+        if (state.amount > 0) {
+            btn.style.opacity = "1";
+            btn.removeAttribute('disabled');
+        } else {
+            btn.style.opacity = "0.5";
+            btn.setAttribute('disabled', 'true');
+        }
+    }
+
+    function triggerSuccess() {
+        document.getElementById('swipe-section').style.display = 'none';
+        document.getElementById('success-section').style.display = 'flex';
+        document.getElementById('success-payee').innerText = state.payee;
+        createConfetti();
+    }
+
+    function resetApp() {
+        state.payee = '';
+        state.amount = 0;
+        state.note = '';
+        document.getElementById('amount-val').innerText = "0.00";
+        document.getElementById('note-input').value = "";
+        document.getElementById('saved-list').style.display = 'none';
+        goToStep(1);
+    }
+
+    // Modal Control
+    function openActivity() { document.getElementById('activity-modal').style.display = 'block'; }
+    function openProfile() { document.getElementById('profile-modal').style.display = 'block'; }
+    function closeModals() { 
+        document.getElementById('activity-modal').style.display = 'none';
+        document.getElementById('profile-modal').style.display = 'none';
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.innerText = msg;
+        t.style.display = 'block';
+        setTimeout(() => { t.style.display = 'none'; }, 2000);
+    }
+
+    function createConfetti() {
+        for(let i=0; i<30; i++) {
+            const c = document.createElement('div');
+            c.className = 'confetti';
+            c.style.left = Math.random() * 100 + '%';
+            c.style.top = '-10px';
+            c.style.backgroundColor = i % 2 === 0 ? '#FFD700' : '#C5E01A';
+            document.getElementById('step-5').appendChild(c);
+            
+            const animation = c.animate([
+                { transform: 'translateY(0) rotate(0deg)', opacity: 1 },
+                { transform: `translateY(400px) rotate(${Math.random()*360}deg)`, opacity: 0 }
+            ], { duration: 1000 + Math.random()*2000, easing: 'ease-out' });
+            
+            animation.onfinish = () => c.remove();
+        }
+    }
+</script>
+
+</body>
+</html>
